@@ -7,6 +7,7 @@ public abstract class BankAccount implements interfaces.Transferable {
     private String accountId;
     private String ownerName;
     private double balance;
+    private Currency currency;
     private List<Transaction> transactionHistory = new ArrayList<>();
 
     public abstract String getAccountType();
@@ -14,13 +15,14 @@ public abstract class BankAccount implements interfaces.Transferable {
     public void printAccountInfo() {
         System.out.println("Account ID: " + accountId);
         System.out.println("Owner Name: " + ownerName);
-        System.out.println("Balance: " + balance);
+        System.out.println("Balance: " + balance + " " + currency);
     }
 
-    public BankAccount(String accountId, String ownerName, double balance) {
+    public BankAccount(String accountId, String ownerName, double balance, Currency currency) {
         this.accountId = accountId;
         this.ownerName = ownerName;
         this.balance = balance;
+        this.currency = currency;
     }
 
     public String getAccountId() {
@@ -47,10 +49,14 @@ public abstract class BankAccount implements interfaces.Transferable {
         this.balance = balance;
     }
 
+    public Currency getCurrency() {
+        return currency;
+    }
+
     public void deposit(double amount) {
         if (amount > 0) {
             balance += amount;
-            System.out.println("Deposit in " + amount + " $. New balance: " + balance + " $");
+            System.out.println("Deposit in " + amount + " " + currency + ". New balance: " + balance + " " + currency);
             logTransaction("Deposit", amount, "Refill account" );
         }
     }
@@ -62,7 +68,7 @@ public abstract class BankAccount implements interfaces.Transferable {
     public boolean withdraw(double amount, String type, String description) {
         if (amount > 0 && amount <= balance) {
             balance -= amount;
-            System.out.println("Withdrawn " + amount + " $. New balance: " + balance + " $");
+            System.out.println("Withdrawn " + amount + " " + currency + ". New balance: " + balance + " " + currency);
             logTransaction(type, amount, description);
             return true;
         } else {
@@ -74,10 +80,12 @@ public abstract class BankAccount implements interfaces.Transferable {
     @Override
     public void transfer(BankAccount target, double amount) {
         if (this.withdraw(amount)) {
-            target.deposit(amount);
+            double convertedAmount = CurrencyConverter.convert(amount, this.currency, target.getCurrency());
+            
+            target.deposit(convertedAmount);
             System.out.println("Transfer successful!");
             this.logTransaction("Transfer out", amount, "Sent to " + target.getOwnerName() + " (ID: " + target.getAccountId() + ")");
-            target.logTransaction("Transfer in", amount, "Received from " + this.getOwnerName() + " (ID: " + this.getAccountId() + ")");
+            target.logTransaction("Transfer in", convertedAmount, "Received from " + this.getOwnerName() + " (ID: " + this.getAccountId() + ")");
         } else {
             System.out.println("Transfer aborted.");
         }

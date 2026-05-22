@@ -3,8 +3,8 @@ package models;
 public class CheckingAccount extends BankAccount {
     private int overdraftLimit;
 
-    public CheckingAccount(String accountId, String ownerName, double balance, int overdraftLimit) {
-        super(accountId, ownerName, balance);
+    public CheckingAccount(String accountId, String ownerName, double balance, Currency currency, int overdraftLimit) {
+        super(accountId, ownerName, balance, currency);
         this.overdraftLimit = overdraftLimit;
     }
 
@@ -12,7 +12,7 @@ public class CheckingAccount extends BankAccount {
         double available = getBalance() + overdraftLimit;
         if (amount > 0 && amount <= available) {
             setBalance(getBalance() - amount);
-            System.out.println("Withdrawn " + amount + " $. New balance: " + getBalance() + " $");
+            System.out.println("Withdrawn " + amount + " " + getCurrency() + ". New balance: " + getBalance() + " " + getCurrency());
             logTransaction(type, amount, description);
             return true;
         } else {
